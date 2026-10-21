@@ -6,6 +6,29 @@ This pipeline dynamically fetches open-source HTML5 games from distinct public r
 
 ---
 
+## 📋 Project Prerequisites
+
+Before executing the pipeline, ensure the following architecture and software baseline is set up across your environment:
+
+### 1. Jenkins Controller Server (Master)
+The central orchestrator running the Jenkins automation dashboard.
+* **Java Development Kit (JDK):** OpenJDK 17 or OpenJDK 21 installed to support the Jenkins core runtime.
+* **Jenkins Installation:** Running as a native system service or inside a standalone Docker container.
+* **Network Access:** Inbound port `8080` open for the web dashboard, and outbound internet access enabled to pull public GitHub repositories.
+
+### 2. Remote Build Node Agent (`agent1`)
+The dedicated AWS EC2 target machine where your build steps and Docker containers run.
+* **Java Development Kit (JDK):** Must match the Controller's version (e.g., OpenJDK 17 or 21) so the Jenkins agent process (`remoting.jar`) can communicate over SSH.
+* **Docker Engine:** Installed (`docker.io`) and running on the host system.
+* **User Permissions:** The execution user (e.g., `ubuntu`) must be added to the `docker` group and granted passwordless `sudo` rights:
+  ```bash
+  sudo usermod -aG docker ubuntu
+  echo "ubuntu ALL=(ALL) NOPASSWD:ALL" | sudo tee -a /etc/sudoers
+  ```
+* **Security Group:** Inbound port `22` open from the Jenkins Master IP for SSH connectivity, and port `81` open to the internet to allow user access to the live games.
+
+---
+
 ## 🛠️ Step-by-Step Implementation Guide
 
 ### Step 1: AWS EC2 Storage Expansion & Optimization
@@ -24,12 +47,9 @@ During initial pipeline executions, the agent triggered a `Free Temp Space` thre
    ```
 
 ### Step 2: Labeled Jenkins Distributed Architecture
-To protect the local controller container from system layer resource exhaustion, workloads were moved onto a dedicated remote runner node.
+To protect the local controller container from system layer resource exhaustion, workloads were moved onto the dedicated remote runner node.
 1. Configured a standalone target node with the label string: `agent1`.
-2. Granted the agent execution shell passwordless `sudo` rights so Jenkins could run configuration installations flawlessly:
-   ```bash
-   echo "ubuntu ALL=(ALL) NOPASSWD:ALL" | sudo tee -a /etc/sudoers
-   ```
+2. Verified the remote node connection handshake logs: `Agent successfully connected and online`.
 
 ### Step 3: Container Host-Swapping & Cache Flushing Mechanics
 When static files inside an active container update via raw `nginx -s reload` signals, Nginx can aggressively cache static layout trees. To achieve a reliable state transformation, the pipeline lifecycle destroys old containers on every build run:
@@ -56,7 +76,8 @@ When static files inside an active container update via raw `nginx -s reload` si
 ---
 
 ## 🧰 Technology Stack Used
-* **CI/CD Orchestration:** Jenkins (Declarative Pipelines)
+* **CI/CD Orchestration:** Jenkins (Distributed Architecture)
 * **Containerization:** Docker Engine (`nginx:alpine`)
 * **Cloud Infrastructure:** AWS EC2 (Ubuntu Linux)
+* **Languages & Runtimes:** OpenJDK (Java Runtime Environment)
 * **Source Repositories:** Git & GitHub
