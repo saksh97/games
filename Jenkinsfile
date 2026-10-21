@@ -11,8 +11,8 @@ pipeline {
 
     environment {
         // Core game repository links provided by you
-        URL_2048 = 'https://github.com/gabrielecirulli/2048.git'
-        URL_TIC_TAC_TOE = 'https://github.com/rammijar/Tic-tac-toe.git'
+        URL_2048 = 'https://github.com/sausi-7/games.git'
+        URL_TIC_TAC_TOE = 'https://github.com/sausi-7/games.git'
         NGINX_CONTAINER_NAME = 'my-nginx-container'
     }
 
